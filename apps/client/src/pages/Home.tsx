@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div>
       <Navbar />
-      <Chatbox apiKey="hii" />
+      <Chatbox apiKey="user_2qZ7ub76E7Ae7grOOcODuNpWQv5-8klqktmmma" theme="slate"/>
     </div>
   );
 }

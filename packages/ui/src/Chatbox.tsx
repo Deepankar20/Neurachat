@@ -1,99 +1,117 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import "./ChatComponent.css";
 
-const ChatComponent = (props: { apiKey: string }) => {
+type Theme = "slate" | "violet" | "pink" | "green" | "orange";
+
+const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
+  const { theme = "slate" } = props;
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [typing, setTyping] = useState(false)
+  const [messages, setMessages] = useState<
+    { text: string; side: "left" | "right" }[]
+  >([]);
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim() !== "") {
-      setMessages([...messages, newMessage]);
-      setNewMessage(""); // Clear the input field after sending
+      // Add user's message (right side)
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: newMessage, side: "right" },
+      ]);
+      setNewMessage("");
+
+      try {
+        setTyping(true)
+        // Send the message to the backend via fetch
+        const response = await fetch(
+          "http://localhost:8080/api/v1/chat/sendMessage",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: newMessage, apiKey: props.apiKey }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to send message");
+        }
+
+        const data = await response.json();
+        console.log(data);
+        setTyping(false)
+        // Add the backend's response (left side)
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: data.data, side: "left" },
+        ]);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        // Handle error (add an error message from backend)
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Error: Unable to fetch response.", side: "left" },
+        ]);
+      }
     }
   };
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
-    <div className="fixed bottom-5 right-5">
+    <div className={`chat-container theme-${theme}`}>
       {/* Chat Toggle Button */}
-      <motion.button
-        onClick={toggleChat}
-        className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-full shadow-lg hover:scale-110 focus:outline-none"
-        whileHover={{ scale: 1.1 }}
-        animate={
-          isOpen
-            ? { scale: 1 }
-            : {
-                scale: [1, 1.2, 1],
-                boxShadow: [
-                  "0 0 0 rgba(0, 0, 0, 0.2)",
-                  "0 0 20px rgba(106, 90, 205, 0.5)",
-                  "0 0 0 rgba(0, 0, 0, 0.2)",
-                ],
-              }
-        }
-        transition={{ duration: 0.6, repeat: isOpen ? 0 : Infinity }}
-      >
+      <button onClick={toggleChat} className="chat-toggle-button">
         {isOpen ? "Close" : "💬"}
-      </motion.button>
+      </button>
 
       {/* Chat Box */}
-      <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.8 }}
-        animate={{
-          opacity: isOpen ? 1 : 0,
-          y: isOpen ? 0 : 50,
-          scale: isOpen ? 1 : 0.8,
-        }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
-        className={`absolute bottom-16 right-0 w-96 bg-white rounded-xl shadow-2xl overflow-hidden ${
-          isOpen ? "block" : "hidden"
-        }`}
-      >
+      <div className={`chat-box ${isOpen ? "visible" : ""}`}>
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold text-lg">
-          Customer Support
+        <div className="chat-header">
+          Customer Support <p className="integration">powered by Neurachat</p>
         </div>
 
-        {/* Chat Messages */}
-        <div className="p-4 h-64 overflow-y-auto">
-          {messages.length === 0 ? (
-            <p className="text-gray-500 text-sm">No messages yet.</p>
-          ) : (
-            messages.map((message, index) => (
-              <div
-                key={index}
-                className="mb-2 flex justify-end items-center"
-              >
-                <div className="bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg shadow-sm max-w-xs">
-                  {message}
-                </div>
-              </div>
-            ))
-          )}
+        {/* Messages */}
+        <div className="chat-messages">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`chat-message ${message.side === "left" ? "message-left" : "message-right"}`}
+            >
+              {message.text}
+            </div>
+          ))}
+
+          {typing ? <div className={`chat-message message-left`}>typing...</div> : ""}
+          <div ref={messagesEndRef}></div>
         </div>
 
-        {/* Message Input */}
-        <div className="p-4 bg-gray-100 flex items-center space-x-2">
+        {/* Input */}
+        <div className="chat-input-container">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            className="chat-input"
           />
-          <button
-            onClick={handleSendMessage}
-            className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition"
-          >
+          <button onClick={handleSendMessage} className="chat-send-button">
             Send
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

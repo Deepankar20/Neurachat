@@ -6,6 +6,7 @@ import type { Request, Response } from "express";
 export async function sendMessage(req: Request, res: Response) {
   try {
     const { apiKey, message } = req.body;
+    console.log({ apiKey, message });
 
     if (!apiKey) {
       res
