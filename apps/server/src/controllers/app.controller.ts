@@ -76,4 +76,37 @@ export async function getApps(req: Request, res: Response) {
   }
 }
 
+export async function getApp(req: Request, res: Response) {
+  try {
+    const { appId } = req.params;
+
+    if (!appId) {
+      res
+        .status(400)
+        .json({ message: "Invalid app ID", code: 400, data: null });
+    }
+
+    const app = prisma.app.findFirst({
+      where: {
+        id: appId,
+      },
+    });
+
+    if (!app) {
+      res.status(404).json({ message: "No app found", code: 404, data: null });
+    }
+
+    res
+      .json(200)
+      .json({ message: "Fetched app successfully", code: 200, data: app });
+  } catch (error) {
+    console.error("Internal Server Error:", error);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", code: 500, data: null });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 export function updateApp() {}
