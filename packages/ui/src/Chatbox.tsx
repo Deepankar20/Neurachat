@@ -3,10 +3,29 @@ import "./ChatComponent.css";
 
 type Theme = "slate" | "violet" | "pink" | "green" | "orange";
 
+// "id": "cm4zs3jxr0001cmck7oonk411",
+//     "name": "Test app 2",
+//     "context": "Its an app where users can create chatrooms and have a chat ",
+//     "apiKey": "user_2qZ7ub76E7Ae7grOOcODuNpWQv5-8klqktmmma",
+//     "userId": "user_2qZ7ub76E7Ae7grOOcODuNpWQv5",
+//     "createdAt": "2024-12-22T15:44:10.671Z",
+//     "updatedAt": "2024-12-22T15:44:10.671Z"
+
+type AppType = {
+  id: string;
+  name: string;
+  context: string;
+  apiKey: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
   const { theme = "slate" } = props;
-  const [isOpen, setIsOpen] = useState(false);
-  const [typing, setTyping] = useState(false)
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [typing, setTyping] = useState<boolean>(false);
+  const [app, setApp] = useState<AppType>();
   const [messages, setMessages] = useState<
     { text: string; side: "left" | "right" }[]
   >([]);
@@ -15,6 +34,40 @@ const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    async function fetchApp() {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/v1/app/getApp?apiKey=${props.apiKey}`
+        );
+
+        const data = await response.json();
+
+        setApp(data.data);
+        console.log(data.data);
+      } catch (error) {
+        console.log("error fetching the App");
+      }
+    }
+
+    fetchApp();
+  }, []);
+
+  const formatText = (text: string) => {
+    return text
+      .split("***")
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+      .map((segment) => {
+        if (segment.includes(":")) {
+          const [title, ...content] = segment.split(":");
+          return `• ${title}:\n  ${content.join(":").trim()}`;
+        }
+        return segment;
+      })
+      .join("\n\n");
   };
 
   const handleSendMessage = async () => {
@@ -27,7 +80,7 @@ const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
       setNewMessage("");
 
       try {
-        setTyping(true)
+        setTyping(true);
         // Send the message to the backend via fetch
         const response = await fetch(
           "http://localhost:8080/api/v1/chat/sendMessage",
@@ -46,7 +99,7 @@ const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
 
         const data = await response.json();
         console.log(data);
-        setTyping(false)
+        setTyping(false);
         // Add the backend's response (left side)
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -80,7 +133,8 @@ const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
       <div className={`chat-box ${isOpen ? "visible" : ""}`}>
         {/* Header */}
         <div className="chat-header">
-          Customer Support <p className="integration">powered by Neurachat</p>
+          {app ? `${app.name}` : ``}{" "}
+          <p className="integration">powered by Neurachat</p>
         </div>
 
         {/* Messages */}
@@ -90,11 +144,17 @@ const ChatComponent = (props: { apiKey: string; theme?: Theme }) => {
               key={index}
               className={`chat-message ${message.side === "left" ? "message-left" : "message-right"}`}
             >
-              {message.text}
+              {message.side === "right"
+                ? message.text
+                : formatText(message.text)}
             </div>
           ))}
 
-          {typing ? <div className={`chat-message message-left`}>typing...</div> : ""}
+          {typing ? (
+            <div className={`chat-message message-left`}>typing...</div>
+          ) : (
+            ""
+          )}
           <div ref={messagesEndRef}></div>
         </div>
 

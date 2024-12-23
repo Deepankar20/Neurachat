@@ -11,7 +11,7 @@ import {
 
 router.post("/createApp", createApp);
 router.get("/getAllApps", getApps);
-router.get("/getApp/:id", getApp);
+router.get("/getApp", getApp);
 router.put("/updateApp/:id", updateApp);
 
 export default router;

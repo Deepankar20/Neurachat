@@ -78,17 +78,17 @@ export async function getApps(req: Request, res: Response) {
 
 export async function getApp(req: Request, res: Response) {
   try {
-    const { appId } = req.params;
+    const apiKey = (req.query.apiKey as string) || "";
 
-    if (!appId) {
+    if (!apiKey) {
       res
         .status(400)
-        .json({ message: "Invalid app ID", code: 400, data: null });
+        .json({ message: "Invalid APi Key", code: 400, data: null });
     }
 
-    const app = prisma.app.findFirst({
+    const app = await prisma.app.findFirst({
       where: {
-        id: appId,
+        apiKey: apiKey,
       },
     });
 
@@ -97,7 +97,7 @@ export async function getApp(req: Request, res: Response) {
     }
 
     res
-      .json(200)
+      .status(200)
       .json({ message: "Fetched app successfully", code: 200, data: app });
   } catch (error) {
     console.error("Internal Server Error:", error);
