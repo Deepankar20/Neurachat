@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import Apps from "../components/dashboard/Apps";
+import Connect from "../components/dashboard/Connect";
+import { useAuth } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("connect"); // Default active tab
+  const navigate = useNavigate();
+
+  const user = useAuth();
 
   const handleTabClick = (tab: any) => {
     setActiveTab(tab);
   };
+
+  useEffect(() => {
+    if (!user.userId) {
+      navigate("/");
+    }
+  }, []);
 
   return (
     <div>
@@ -33,7 +46,7 @@ export default function Dashboard() {
                 : "bg-[#1a1a1a] hover:bg-slate-100 hover:text-black"
             }`}
           >
-            API
+            App
           </button>
 
           <button
@@ -49,9 +62,9 @@ export default function Dashboard() {
         </div>
 
         <div className="w-3/4 p-4">
-          {activeTab === "connect" && <div>Connect Content</div>}
-          {activeTab === "api" && <div>API Content</div>}
-          {activeTab === "analysis" && <div>Analysis Content</div>}
+          {activeTab === "connect" && <Connect />}
+          {activeTab === "api" && <Apps />}
+          {activeTab === "analysis" && <div>Coming Soon...</div>}
         </div>
       </div>
     </div>
