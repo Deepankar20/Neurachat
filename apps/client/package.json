@@ -16,7 +16,7 @@
     "@google/generative-ai": "^0.21.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "framer-motion": "^11.15.0",
-    "neura-chatlibexample": "1.0.4",
+    "neura-chatlibexample": "1.0.5",
     "react-copy-to-clipboard": "^5.1.0",
     "react-router-dom": "^7.1.0",
     "react-syntax-highlighter": "^15.6.1",
