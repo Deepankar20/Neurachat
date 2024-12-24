@@ -54,6 +54,7 @@ export async function createApp(req: Request, res: Response) {
 export async function getApps(req: Request, res: Response) {
   try {
     const userId = req.query.userId as string;
+
     if (!userId) {
       res
         .status(400)
@@ -84,17 +85,17 @@ export async function getApps(req: Request, res: Response) {
 
 export async function getApp(req: Request, res: Response) {
   try {
-    const apiKey = (req.query.apiKey as string) || "";
+    const appId = (req.query.appId as string) || "";
 
-    if (!apiKey) {
+    if (!appId) {
       res
         .status(400)
-        .json({ message: "Invalid APi Key", code: 400, data: null });
+        .json({ message: "Invalid App ID", code: 400, data: null });
     }
 
     const app = await prisma.app.findFirst({
       where: {
-        apiKey: apiKey,
+        apiKey: appId,
       },
     });
 
