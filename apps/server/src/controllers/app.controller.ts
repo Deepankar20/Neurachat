@@ -95,7 +95,7 @@ export async function getApp(req: Request, res: Response) {
 
     const app = await prisma.app.findFirst({
       where: {
-        apiKey: appId,
+        id: appId,
       },
     });
 
