@@ -1,10 +1,16 @@
 import prisma from "../db/db";
 
 import type { Request, Response } from "express";
+type bodyType = {
+  name: string;
+  userid: string;
+  context: string;
+};
 
 export async function createApp(req: Request, res: Response) {
   try {
-    const body = req.body;
+    const body = req.body as bodyType;
+    console.log(body);
 
     if (!body) {
       res
@@ -14,7 +20,7 @@ export async function createApp(req: Request, res: Response) {
 
     const random = Math.random().toString(36).substr(2, 10);
 
-    const apiKey = body.userid.toString() + "-" + random;
+    const apiKey = body.userid + "-" + random;
 
     const app = await prisma.app.create({
       data: {
