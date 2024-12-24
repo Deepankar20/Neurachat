@@ -91,6 +91,7 @@ export async function getApp(req: Request, res: Response) {
       res
         .status(400)
         .json({ message: "Invalid App ID", code: 400, data: null });
+      return;
     }
 
     const app = await prisma.app.findFirst({
@@ -101,6 +102,7 @@ export async function getApp(req: Request, res: Response) {
 
     if (!app) {
       res.status(404).json({ message: "No app found", code: 404, data: null });
+      return;
     }
 
     res
@@ -117,3 +119,39 @@ export async function getApp(req: Request, res: Response) {
 }
 
 export function updateApp() {}
+
+export async function getAppFromApiKey(req: Request, res: Response) {
+  try {
+    const apiKey = req.query.apiKey as string;
+
+    if (!apiKey) {
+      res
+        .status(403)
+        .json({ message: "Invalid ApiKey", code: 403, data: null });
+
+      return;
+    }
+
+    const app = await prisma.app.findFirst({
+      where: {
+        apiKey: apiKey,
+      },
+    });
+
+    if (!app) {
+      res.status(404).json({ message: "No app found", code: 404, data: null });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ message: "Fetched app successfully", code: 200, data: app });
+  } catch (error) {
+    console.error("Internal Server Error:", error);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", code: 500, data: null });
+  } finally {
+    await prisma.$disconnect();
+  }
+}

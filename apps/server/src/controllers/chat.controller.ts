@@ -78,22 +78,29 @@ export async function sendMessage(req: Request, res: Response) {
 export async function getAllMessages(req: Request, res: Response) {
   try {
     const apiKey = req.query.apiKey as string;
+    const appId = req.query.appId as string;
 
-    if (!apiKey) {
+    if (!apiKey && !appId) {
       res
         .status(403)
-        .json({ message: "Invalid ApiKey", code: 403, data: null });
+        .json({ message: "Invalid credentials", code: 403, data: null });
 
       return;
     }
 
-    const app = await prisma.apiKey.findFirst({
+    const app1 = await prisma.apiKey.findFirst({
       where: {
         key: apiKey,
       },
     });
 
-    if (!app) {
+    const app2 = await prisma.apiKey.findFirst({
+      where: {
+        appId: appId,
+      },
+    });
+
+    if (!app1 && !app2) {
       res
         .status(403)
         .json({ message: "Invalid ApiKey", code: 403, data: null });
@@ -101,11 +108,23 @@ export async function getAllMessages(req: Request, res: Response) {
       return;
     }
 
-    const messages = await prisma.message.findMany({
-      where: {
-        appId: app.appId,
-      },
-    });
+    let messages;
+
+    if (app1) {
+      messages = await prisma.message.findMany({
+        where: {
+          appId: app1.appId,
+        },
+      });
+    }
+
+    if (app2) {
+      messages = await prisma.message.findMany({
+        where: {
+          appId: app2.appId,
+        },
+      });
+    }
 
     res
       .status(200)
@@ -115,3 +134,5 @@ export async function getAllMessages(req: Request, res: Response) {
     await prisma.$disconnect();
   }
 }
+
+
