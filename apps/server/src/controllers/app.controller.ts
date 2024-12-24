@@ -53,7 +53,7 @@ export async function createApp(req: Request, res: Response) {
 
 export async function getApps(req: Request, res: Response) {
   try {
-    const userId = req.params.userId;
+    const userId = req.query.userId as string;
     if (!userId) {
       res
         .status(400)
