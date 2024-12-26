@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type app = {
   id: string;
@@ -50,7 +50,11 @@ export default function Apps() {
 
       const data = await response.json();
 
-      console.log(data);
+      if (!data) {
+        return;
+      }
+
+      navigate(`/application/${data.data.id}`);
     } catch (error) {
       console.log(`An error occured while creating : ${error}`);
     }
@@ -96,22 +100,28 @@ export default function Apps() {
           Create New App
         </button>
 
-        <div className="flex justify-center">
-          {loading &&  <div className="">loading...</div>}
-        </div>
+        <div className="flex flex-col gap-0 p-8">
+          <div className="flex justify-around border p-4 bg-[#1a1a1a]">
+            <div className="w-1/3">Sr. No.</div>
+            <div className="w-1/3">App Name</div>
+            <div className="w-1/3">App Id</div>
+          </div>
 
-        <div className="flex flex-col gap-4 p-8">
+          <div className="flex justify-center ">
+            {loading && <div className="">loading...</div>}
+          </div>
+
           {apps &&
             apps.map((app, i) => {
               return (
                 <div
                   key={i}
-                  className="flex justify-around border p-3 bg-[#1a1a1a] hover:text-black hover:bg-slate-100 hover:cursor-pointer"
+                  className="flex justify-around border p-3 bg-[#1a1a1a] hover:bg-[#3d3d3d] hover:cursor-pointer"
                   onClick={() => navigate(`/application/${app.id}`)}
                 >
-                  <div>{i + 1}</div>
-                  <div>{app.id}</div>
-                  <div>{app.name}</div>
+                  <div className="w-1/3">{i + 1}</div>
+                  <div className="w-1/3">{app.name}</div>
+                  <div className="w-1/3">{app.id}</div>
                 </div>
               );
             })}
